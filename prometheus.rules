@@ -1,4 +1,44 @@
-groups:
-- name: example-rules
-  interval: 30s # defaults to global interval
-  rules:
+groups: 
+- name: node.rules 
+  interval: 30s 
+  rules: 
+
+    # Node Instance is Down 
+    - alert: "Node Down" 
+      expr: up{job="kubernetes-nodes"} == 0 
+      for: 5m 
+      labels: 
+        severity: critical 
+      annotations: 
+        summary: "Node {{ $labels.instance }} is down" 
+        description: "Node {{ $labels.instance }} is down" 
+
+    # CPU Usage is high (over 85 percent) 
+    - alert: "Node on high CPU" 
+      expr: 100 - (avg by(instance) (irate(node_cpu{mode="idle"}[5m])) * 100) > 85 
+      for: 5m 
+      labels: 
+        severity: warning 
+      annotations: 
+        summary: "Node {{ $labels.instance }} is on high CPU usage" 
+        description: "Node {{ $labels.instance }} is on high CPU usage (current value is: {{ $value }})" 
+
+    # RAM Usage is high (Over 90 percent) 
+    - alert: "Node on high RAM usage" 
+      expr: (((node_memory_MemTotal - node_memory_MemAvailable) / (node_memory_MemTotal) * 100)) > 90 
+      for: 5m 
+      labels: 
+        severity: warning 
+      annotations: 
+        summary: "Node {{ $labels.instance }} is on high memory usage" 
+        description: "Node {{ $labels.instance }} memory usage is above 90% (current value is: {{ $value }})" 
+    
+    # Filesystem almost full (Over 80 percent) 
+    - alert: "Node is on low-disk space" 
+      expr: 100 - (avg by(instance) (irate(node_cpu{mode="idle"}[5m])) * 100) > 75 
+      for: 5m 
+      labels: 
+        severity: warning 
+      annotations: 
+        summary: "Node {{ $labels.instance }} is on high CPU usage" 
+        description: "Node {{ $labels.instance }} is low-disk space (current value is: {{ $value }}"
